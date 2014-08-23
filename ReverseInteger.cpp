@@ -9,7 +9,7 @@ public:
         bool neg = false;
         if (x < 0) {
         	neg = true;
-        	x = 0 - x;
+        	x = 0 - x;	  
         }
         int r = 0;
         while(x > 0) {
