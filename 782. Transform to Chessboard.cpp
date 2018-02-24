@@ -29,38 +29,78 @@ public:
 class Solution {
 public:
     int movesToChessboard(vector<vector<int> > & board) {
-        int start_0 = getSwapMovesWithFirst(board, 0), start_1 = getSwapMovesWithFirst(board, 1);
-        int min = start_0 <= start_1 ? start_0 : start_1;
-        return min == INT_MAX ? -1 : min;
+        int N = board.size(), checkValid = -1, check_row = -1;
+
+        //===== 1 check if the first row meets the requrirement of #1 & #0 for a chess board =====//
+        checkValid = checkValidRow(board[0], board[0].size() );
+        if (checkValid == -1) return -1;
+
+        // get the swap moves of first column 
+        int col_move = getSwapMoves(board[0], checkValid, N);
+
+        if(N%2 ==0) {
+            int find_min = getSwapMoves(board[0], 1-checkValid, N);
+            if (find_min < col_move) {
+                col_move = find_min;
+                checkValid = 1-checkValid;
+            }
+        }
+
+        //==== 2 check all the columns starts with checkValid if its rows meet the requirement =====//  
+        vector<int> col;
+        for(int i = 0; i < N; i++) { //col
+             if (board[0][i] == checkValid) { //starts with checkValid
+                col.clear();
+                check_row = -1;
+                for(int j = 0; j < N; j++) { //row
+                    col.push_back(board[j][i]);
+                }
+                check_row = checkValidRow(col, N);
+                //cout << "check col:\t" << i << "\tresult:\t" << check_row << endl;
+                if (check_row == -1) return -1;
+             }
+        }
+
+        if(col.size() == 0) return -1;
+        int row_move = getSwapMoves(col, check_row, N);
+
+        if(N%2 ==0) {
+            int find_min = getSwapMoves(col, 1-check_row, N);
+            if (find_min < row_move) {
+                row_move = find_min;
+                check_row = 1-check_row;
+            }
+        }
+
+        //cout << "col_move:\t" << col_move << "\trow_move:\t" << row_move << endl;
+
+        if(col_move == -1 || row_move == -1) return -1;
+
+        return col_move + row_move;
     }
 
-    int getSwapMovesWithFirst(vector<vector<int> > board, int first) {
-        int col_moves = -1, row_moves = -1;
-        int N = board.size();
+    int checkValidRow(vector<int> row, int N) {
+        if (N == 0) return -1;
 
-        //===== Check columns row by row =====//
-        vector<int> first_row = board[0];
-        col_moves = getSwapMoves(first_row, first, N);
+        int count_1 = 0;
 
-        //===== Check rows column by column =====//
-        vector<int> first_col;
-        for(int i = 0; i < N; i++)
-            first_col.push_back(board[i][0]);
-                
-        row_moves = getSwapMoves(first_col, first, N);
-        //if (row_moves == -1) row_moves = getSwapMoves(first_col, 1-first, N);
+        for(int i = 0; i < N; i++) {
+            count_1 = count_1 + row[i];
+        }
 
-        //===== return result =====//
-        cout << "first:\t" << first << "\tcol_moves:\t" << col_moves << "\trow_moves:\t" << row_moves << endl;
-        if(col_moves == -1 || row_moves == -1) return INT_MAX;
-        
-        return col_moves + row_moves;
+        if (N % 2 == 0 && count_1 == N/2) return row[0];
+        if (N % 2 == 1) {
+            if (count_1 == N - count_1 + 1) return 1;
+            if (count_1 == N - count_1 - 1) return 0;
+        }
+        return -1;
     }
 
     int getSwapMoves(vector<int> vec, int first, int col_N) {
         vector<int> standard_row;
         int col_moves = 0;
 
+        //cout << "first element is:\t" << first << endl;
         standard_row.push_back(first);
 
         for(int i = 1; i < col_N; i++) {
@@ -75,17 +115,17 @@ public:
 
         //col_moves: different columns compared board[0] with the correct row
         if (col_moves % 2 == 1) return -1;
-        if (col_moves > 0) col_moves = col_moves / 2;
+        if (col_moves >= 0) return col_moves / 2;
 
         //cout << "col_moves:\t" << col_moves << endl; 
-        return col_moves;
+        return -1;
     }
 };
 
 
 int main() {
-    const int row = 7, col = row;
-    int a[row][col] = {{0,0,1,1,1,1,0},{0,0,1,1,1,1,0},{0,0,1,1,1,1,0},{0,1,0,0,1,1,1},{0,1,0,0,1,1,1},{0,1,0,0,1,1,1},{0,0,1,1,1,1,0}} ;
+    const int row = 6, col = row;
+    int a[row][col] = {{0,0,1,0,1,1},{1,1,0,1,0,0},{1,1,0,1,0,0},{0,0,1,0,1,1},{1,1,0,1,0,0},{0,0,1,0,1,1}};
     //{{0,1,1,0},{0,1,1,0},{1,0,0,1},{1,0,0,1}}; = 2
     //{{1,0},{1,0}}; = -1
     //{{1,1,0},{0,0,1},{0,0,1}}; = 2 
